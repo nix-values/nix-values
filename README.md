@@ -1,4 +1,8 @@
-# nix-values
+<div align="center">
+
+<img width="400" alt="Nix Values" src="./assets/logo.svg">
+
+</div>
 
 Generate minimal local Nix value inputs for flakes.
 
