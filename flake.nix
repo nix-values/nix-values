@@ -4,7 +4,7 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs =
-    { nixpkgs, ... }:
+    { self, nixpkgs, ... }:
     let
       systems = [
         "aarch64-darwin"
@@ -16,12 +16,36 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
-      formatter = forAllSystems (
+      packages = forAllSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-        pkgs.nixfmt-rfc-style
+        {
+          default = pkgs.writeShellApplication {
+            name = "nix-value";
+            runtimeInputs = [ pkgs.nix ];
+            text = builtins.readFile ./nix-value.sh;
+          };
+
+          nix-value = pkgs.writeShellApplication {
+            name = "nix-value";
+            runtimeInputs = [ pkgs.nix ];
+            text = builtins.readFile ./nix-value.sh;
+          };
+        }
       );
+
+      apps = forAllSystems (system: {
+        default = {
+          type = "app";
+          program = "${nixpkgs.legacyPackages.${system}.lib.getExe self.packages.${system}.nix-value}";
+        };
+
+        nix-value = {
+          type = "app";
+          program = "${nixpkgs.legacyPackages.${system}.lib.getExe self.packages.${system}.nix-value}";
+        };
+      });
     };
 }
